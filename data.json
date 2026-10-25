@@ -1,6 +1,7 @@
 {
     "msg": "Hello World!",
     "obj": {
-        "msg": "baz"
+        "msg": "baz",
+        "style": "color:red"
     }
 }

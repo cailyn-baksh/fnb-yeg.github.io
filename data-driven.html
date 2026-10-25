@@ -11,15 +11,27 @@
 
 	<link href="/stylesheet.css" rel="stylesheet" type="text/css"/>
 
-    <link class="data-source" data-ns="source1" rel="preload" as="fetch" href="/data/source1.json" />
+    <!-- Load additional data source using link prefetch -->
+    <link class="data-source" rel="preload" as="fetch" href="/data/source1.json" />
+    <!-- Allow prefetch of arbitrary content? data-source="data|blob" -->
+    <!--<link data-include="data" href="/data/source1.json" />-->
+    <!--<link class="data-source" data-include="fragment"
+        href="/data/fragment.html" />-->
 
-	<script src="/js/markdown.min.js"></script>
+    <!--<link data-include="data" rel="preload" as="fetch"
+                                            href="/data/source1.json" />
+    <link data-content="fragment" rel="preload" as="fetch"
+    href="/data/fragment.html" />-->
+
+    <!--<script src="/js/markdown.min.js"></script>-->
 	<script src="/js/sitedata.js"></script>
 
 	<title>Data driven test</title>
 </head>
 <body>
-    <p class="data-driven" data-key="msg" data-target="innerHTML">foo</p>
-    <p class="data-driven" data-key="obj.msg" data-target="innerHTML">bar</p>
+    <p data-driven="innerHTML=msg">foo</p>
+    <p data-driven="innerHTML=obj.msg;style=obj.style">bar</p>
+
+    <div data-include="text" data-src="/data/fragment.html"></div>
 </body>
 </html>

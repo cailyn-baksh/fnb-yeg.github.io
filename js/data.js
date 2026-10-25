@@ -56,7 +56,12 @@ function applySiteData() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+    const elems = document.querySelectorAll("link.data-driven");
 
+    for (elem of elems) {
+        let data = await fetch(elem.href);
+        console.log(await data.json());
+    }
 });
 
 getSiteData();

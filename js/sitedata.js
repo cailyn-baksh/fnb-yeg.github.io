@@ -14,7 +14,7 @@ class SiteData {
     }
 
     toString() {
-        return JSON.stringify(this.#data);
+        return JSON.stringify({ data: this.#data, content: this.#content});
     }
 
     /*

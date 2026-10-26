@@ -82,15 +82,15 @@ name foo -->
 
 ## Roadmap
 
-[x] Load core sitedata file
-[x] Populate data-driven values from sitedata
-[x] `<link>` loading
-  [x] Data files
-  [x] Content files
-[x] Load data files from URL query string
-[ ] Dispatch document events as data is loaded and populated
-  [ ] Delay markdown rendering until data population is complete
-[ ] Allow included content to access data-driven values using page-specific data
-[ ] Add syntax for indexing arrays from site data
-[ ] Add defined failure behaviour & error handling
+- [x] Load core sitedata file
+- [x] Populate data-driven values from sitedata
+- [x] `<link>` loading
+  - [x] Data files
+  - [x] Content files
+- [x] Load data files from URL query string
+- [ ] Dispatch document events as data is loaded and populated
+  - [ ] Delay markdown rendering until data population is complete
+- [ ] Allow included content to access data-driven values using page-specific data
+- [ ] Add syntax for indexing arrays from site data
+- [ ] Add defined failure behaviour & error handling
 

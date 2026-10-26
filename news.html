@@ -95,11 +95,45 @@
 		</nav>
 		<div class="container">
             <div class="row justify-content-center">
-                <!-- Bluesky feed -->
+                <!-- Social feeds -->
                 <div class="col-xs-12 col-lg-8">
                     <div class="card vh-100 overflow-scroll">
-                        <bsky-embed username="foodnotbombsyeg.bsky.social"
-                            load-more="true"></bsky-embed>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="bsky-tab"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#bsky-tab-pane"
+                                    type="button" role="tab"
+                                    aria-controls="bsky-tab-pane"
+                                    aria-selected="true">
+                                    <i class="ri-bluesky-fill"></i>Bluesky
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="insta-tab"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#insta-tab-pane"
+                                    type="button" role="tab"
+                                    aria-controls="insta-tab-pane"
+                                    aria-selected="true">
+                                    <i class="ri-instagram-line"></i>Instagram
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content h-100" id="socialTabs">
+                            <div class="tab-pane show active" id="bsky-tab-pane"
+                                role="tabpanel" aria-labelledby="bsky-tab" tabindex=0>
+                                <bsky-embed username="foodnotbombsyeg.bsky.social"
+                                    load-more="true"></bsky-embed>
+                            </div>
+                            <div class="tab-pane h-100" id="insta-tab-pane"
+                                role="tabpanel" aria-labelledby="insta-tab" tabindex=0>
+                                <iframe class="h-100 w-100" loading="lazy"
+                                    src="https://www.instagram.com/foodnotbombs_yeg/embed/" frameborder="0"></iframe>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>

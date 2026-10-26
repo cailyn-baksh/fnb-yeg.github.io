@@ -1,3 +1,4 @@
 {
-    "source2": true
+    "override-msg": "Message from source2.json",
+    "override-url": "/data-driven.html"
 }

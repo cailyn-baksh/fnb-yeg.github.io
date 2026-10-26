@@ -1,5 +1,6 @@
 class SiteData {
     #data = {};
+    #content = {};
 
     constructor() {
     }
@@ -8,29 +9,71 @@ class SiteData {
         return Object.freeze(this.#data);
     }
 
+    get content() {
+        return Object.freeze(this.#content);
+    }
+
     toString() {
         return JSON.stringify(this.#data);
     }
 
     /*
-     * Load site data from a source
+     * Load JSON site data
      * src      The source to load the data from
-     * opts     Options to pass to fetch()
+     * opts     Options to pass to fetch. Defaults to a same-origin request.
      */
-    async loadFromSource(src, opts={mode:"no-cors",credentials:"include"}) {
-        let data = await fetch(src, opts).then((r) => r.json());
+    async loadData(src, opts={mode:"no-cors",credentials:"include"}) {
+        let data = await fetch(src, opts).then(r => r.json());
         this.#data = Object.assign(this.#data, data);
     }
 
-    query(path) {
-        let keys = path.split('.');
+    /*
+     * Load arbitrary content
+     * src      The source to load the content from
+     * title    The content title, used to access the content
+     * type     The MIME type of the content. Defaults to text/plain
+     * opts     Options to pass to fetch. Defaults to a same-origin request.
+     */
+    async loadContent(src, title, type="text/plain",
+                      opts={mode:"no-cors",credentials:"include"}) {
+        // We only care about the discrete type
+        type = type.split('/')[0];
 
-        let selected = this.#data;
-        for (const key of keys) {
-            selected = selected[key];
+        let content = await fetch(src, opts).then(r => r.blob());
+
+        switch (type) {
+            case "text":
+                this.#content[title] = await content.text();
+                break;
+            default:
+                this.#content[title] = URL.createObjectURL(content);
+        }
+    }
+
+    /*
+     * Gets a value from the site data
+     * path     The path to access.
+     * Returns the value, or undefined if the value does not exist
+     *
+     * Paths may be one or more data keys, separated by '.', or a single
+     * content key prefixed with an '@'.
+     */
+    query(path) {
+        if (path[0] === '@') {
+            // Get content
+            return this.#content[path.substr(1)];
+        } else {
+            // Get data
+            let keys = path.split('.');
+
+            let selected = this.#data;
+            for (const key of keys) {
+                selected = selected[key];
+            }
+
+            return selected;
         }
 
-        return selected;
     }
 }
 
@@ -38,46 +81,38 @@ var sitedata = new SiteData();
 
 document.addEventListener("DOMContentLoaded", async () => {
     /* Load core site data */
-    await sitedata.loadFromSource("/data.json");
+    await sitedata.loadData("/sitedata.json");
 
     /* Load additional sources */
     // <link> sources
-    const linked = document.querySelectorAll("link.data-source");
+    const linked = document.querySelectorAll("link[data-include]");
     for (const link of linked) {
-        await sitedata.loadFromSource(link.href);
+        switch (link.dataset.include) {
+            case "data":
+                // Load JSON data
+                await sitedata.loadData(link.href);
+                break;
+            case "content":
+                // Load arbitrary content
+                await sitedata.loadContent(link.href, link.title,
+                    link.hasAttribute("type") ? link.type : "text/plain");
+                break;
+        }
     }
 
-    /* GET sources */
+    // GET sources
     let urlSources = new URLSearchParams(window.location.search).get("ds");
     if (urlSources !== null) {
         urlSources = urlSources.split(' ');
 
         for (const source of urlSources) {
-            await sitedata.loadFromSource(`/data/${source}.json`);
+            await sitedata.loadData(`/data/${source}.json`);
         }
-    }
-
-    /* Load arbitrary content */
-    const includes = document.querySelectorAll("[data-include]");
-    for (const include of includes) {
-        let content = await fetch(include.dataset.src);
-
-        switch (include.dataset.include) {
-            case "blob":
-                content = await content.blob();
-                break;
-            case "text":
-            default:
-                content = await content.text();
-                break;
-        }
-
-        //console.log(content.bytes());
-        include.innerHTML = content;
     }
 
     /* Populate data-driven targets */
     // Get add data-driven elements
+    // TODO: Allow included content to access data values
     const elems = document.querySelectorAll("[data-driven]");
     for (const elem of elems) {
         // Get all data targets

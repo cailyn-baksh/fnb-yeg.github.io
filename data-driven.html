@@ -12,16 +12,17 @@
 	<link href="/stylesheet.css" rel="stylesheet" type="text/css"/>
 
     <!-- Load additional data source using link prefetch -->
-    <link class="data-source" rel="preload" as="fetch" href="/data/source1.json" />
-    <!-- Allow prefetch of arbitrary content? data-source="data|blob" -->
-    <!--<link data-include="data" href="/data/source1.json" />-->
-    <!--<link class="data-source" data-include="fragment"
-        href="/data/fragment.html" />-->
 
-    <!--<link data-include="data" rel="preload" as="fetch"
-                                            href="/data/source1.json" />
-    <link data-content="fragment" rel="preload" as="fetch"
-    href="/data/fragment.html" />-->
+    <!-- Load data from a JSON file -->
+    <link data-include="data" rel="preload" as="fetch" href="/data/source1.json" />
+
+    <!-- Load HTML content -->
+    <link data-include="content" rel="preload" as="fetch"
+        title="fragment" type="text/html" href="/data/fragment.html" />
+
+    <!-- Load binary content -->
+    <link data-include="content" rel="preload" as="fetch"
+        title="image" type="image/png" href="/data/image.png" />
 
     <!--<script src="/js/markdown.min.js"></script>-->
 	<script src="/js/sitedata.js"></script>
@@ -32,6 +33,9 @@
     <p data-driven="innerHTML=msg">foo</p>
     <p data-driven="innerHTML=obj.msg;style=obj.style">bar</p>
 
-    <div data-include="text" data-src="/data/fragment.html"></div>
+    <div data-driven="innerHTML=@fragment"></div>
+    <img data-driven="src=@image" alt="Image loaded from data-driven content" />
+
+    <p><a data-driven="href=override-url;innerText=override-msg"></a></p>
 </body>
 </html>

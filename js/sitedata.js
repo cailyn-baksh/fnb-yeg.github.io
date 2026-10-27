@@ -73,7 +73,24 @@ class SiteDataPopulateEvent extends Event {
     }
 }
 
+/*
+ * Singleton class representing the site data
+ */
 class SiteData {
+    /* Singleton init code */
+    // IDK how useful/effective a singleton is in js but the pattern would make
+    // sense here in like c++ so i'm using it
+    static #instance = null;
+    static {
+        this.#instance = new SiteData();
+    }
+    constructor() {
+        return SiteData.#instance ?? this;
+    }
+    static get instance() {
+        return this.#instance;
+    }
+
     #data = {};
     #content = {};
 
@@ -126,7 +143,7 @@ class SiteData {
                     // Parse document
                     let doc = new DOMParser().parseFromString(content, mime);
                     // Populate data
-                    this.populateDocument(doc);
+                    SiteData.populateDocument(doc);
                     // Extract original document. This may cause some kind of
                     // problems but it seems to work so far
                     content = doc.body.innerHTML;
@@ -167,7 +184,7 @@ class SiteData {
     /*
      * Populate a Document with data-driven values
      */
-    populateDocument(doc) {
+    static populateDocument(doc) {
         // Get all data-driven elements
         const elems = doc.querySelectorAll("[data-driven]");
 
@@ -178,28 +195,13 @@ class SiteData {
             // Query and apply each data target
             for (const target of targets) {
                 let [attr, key] = target.split('=');
-                let value = sitedata.query(key);
+                let value = SiteData.instance.query(key);
                 elem[attr] = value;
 
                 // Should this be done to document or doc?
                 document.dispatchEvent(new SiteDataPopulateEvent(elem, attr, key, value));
             }
         }
-    }
-}
-
-
-function populateDataDrivenElement(elem) {
-    // Get all data targets
-    let targets = elem.dataset.driven.split(';');
-
-    // Query and apply each data target
-    for (const target of targets) {
-        let [attr, key] = target.split('=');
-        let value = sitedata.query(key);
-        elem[attr] = value;
-
-        document.dispatchEvent(new SiteDataPopulateEvent(elem, attr, key, value));
     }
 }
 
@@ -271,7 +273,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     /* Populate data-driven targets */
-    sitedata.populateDocument(document);
+    SiteData.populateDocument(document);
 
     document.dispatchEvent(new CustomEvent("sitedata-finish"));
 });

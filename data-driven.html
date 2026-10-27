@@ -15,6 +15,7 @@
 
     <!-- Load data from a JSON file -->
     <link data-include="data" rel="preload" as="fetch" href="/data/source1.json" />
+    <link data-include="data" rel="preload" as="fetch" href="/data/404.json" />
 
     <!-- Load HTML content -->
     <link data-include="content" rel="preload" as="fetch"
@@ -40,5 +41,6 @@
     <img data-driven="src=@image" alt="Image loaded from data-driven content" />
 
     <p><a data-driven="href=override-url;innerText=override-msg"></a></p>
+    <p data-driven="innerText=array.1"></p>
 </body>
 </html>

@@ -94,6 +94,8 @@ class SiteData {
     #data = {};
     #content = {};
 
+    #promises = [];
+
     get data() {
         return Object.freeze(this.#data);
     }
@@ -107,15 +109,78 @@ class SiteData {
     }
 
     /*
+     * Wrapper around fetch that rejects if the request fails. Enforces a
+     * same-origin policy on all fetches.
+     */
+    #fetch(src) {
+        return fetch(src, { mode: "no-cors", credentials: "include" })
+            .then(r => {
+                if (!r.ok)
+                    throw new Error(`fetch ${src} failed with code ${r.status}`);
+                return r;
+            });
+    }
+
+    /*
+     * Returns once all pending promises are settled.
+     */
+    async pendingPromises() {
+        await Promise.allSettled(this.#promises);
+        this.#promises = [];
+    }
+
+    /*
      * Load JSON site data
      * src      The source to load the data from
      * opts     Options to pass to fetch. Defaults to a same-origin request.
+     * Returns a Promise that resolves to the loaded data
      */
-    async loadData(src, opts={mode:"no-cors",credentials:"include"}) {
-        let data = await fetch(src, opts).then(r => r.json());
-        this.#data = Object.assign(this.#data, data);
+    loadData(src) {
+        let promise = this.#fetch(src)
+            .then(r => r.json())
+            .then(data => {
+                this.#data = Object.assign(this.#data, data);
+                return data;
+            });
+        this.#promises.push(promise);
+        return promise;
+    }
 
-        // What to return? Promise? SiteDataLoadEvent?
+    /*
+     * Processes a Blob loaded from a content source
+     * blob     The content Blob object to process
+     * mime     The mime type of the content
+     * Returns the appropriate String representation of the content
+     */
+    static #processContentBlob(blob, mime) {
+        let [type, subtype] = mime.split('/', 2);
+
+        // Process content based on MIME type
+        switch (type) {
+            case "text":
+                return blob.text().then(text => {
+                    // Handle markup content
+                    if (subtype === "html"
+                        || subtype === "xml"
+                        || subtype === "svg"
+                    ) {
+                        // Parse document
+                        let doc = new DOMParser().parseFromString(text, mime);
+                        // Populate data
+                        SiteData.populateDocument(doc);
+                        // Extract original document. This may cause some kind
+                        // of problems but it seems to work so far
+                        text = doc.body.innerHTML;
+                    }
+
+                    return text;
+                });
+                break;
+            default:
+                // Binary data; create data URI
+                return blob.bytes()
+                    .then(b => `data:${mime};base64,${b.toBase64()}`);
+        }
     }
 
     /*
@@ -123,39 +188,21 @@ class SiteData {
      * src      The source to load the content from
      * title    The content title, used to access the content
      * mime     The MIME type of the content. Defaults to text/plain
-     * opts     Options to pass to fetch. Defaults to a same-origin request.
+     * Returns a Promise that resolves to the loaded content
      */
-    async loadContent(src, title, mime="text/plain",
-                      opts={mode:"no-cors",credentials:"include"}) {
+    loadContent(src, title, mime="text/plain") {
         // We only care about the discrete type
         let [type, subtype] = mime.split('/', 2);
 
-        let content = await fetch(src, opts).then(r => r.blob());
-
-        switch (type) {
-            case "text":
-                content = await content.text();
-
-                if (subtype === "html"
-                    || subtype === "xml"
-                    || subtype === "svg"
-                ) {
-                    // Parse document
-                    let doc = new DOMParser().parseFromString(content, mime);
-                    // Populate data
-                    SiteData.populateDocument(doc);
-                    // Extract original document. This may cause some kind of
-                    // problems but it seems to work so far
-                    content = doc.body.innerHTML;
-                }
-
+        let promise = this.#fetch(src)
+            .then(r => r.blob())
+            .then(blob => SiteData.#processContentBlob(blob, mime))
+            .then(content => {
                 this.#content[title] = content;
-                break;
-            default:
-                // Non-text data; create data URI
-                let bytes = await content.bytes().then(b => b.toBase64());
-                this.#content[title] = `data:${mime};base64,${bytes}`;
-        }
+                return content;
+            });
+        this.#promises.push(promise);
+        return promise;
     }
 
     /*
@@ -167,6 +214,7 @@ class SiteData {
      * content key prefixed with an '@'.
      */
     query(path) {
+        // Could this be a static method?
         if (path[0] === '@') {
             // Get content
             return this.#content[path.substr(1)];
@@ -200,8 +248,7 @@ class SiteData {
                 let value = SiteData.instance.query(key);
                 elem[attr] = value;
 
-                // Should this be done to document or doc?
-                document.dispatchEvent(new SiteDataPopulateEvent(elem, attr, key, value));
+                doc.dispatchEvent(new SiteDataPopulateEvent(elem, attr, key, value));
             }
         }
     }
@@ -209,25 +256,29 @@ class SiteData {
 
 
 const SITEDATA_PATH = "/sitedata.json";
-var sitedata = new SiteData();
 
 // Debug/testing listeners
-/*document.addEventListener("sitedata-load", (e) => {
-    console.log(e.origin, `loaded ${e.type} from '${e.source}'`);
-});
-document.addEventListener("sitedata-populate", (e) => {
-    console.log(`Populated ${e.attribute} with '${e.value}' from key ${e.key}`, e.element);
-});
-document.addEventListener("sitedata-finish", () => console.log("Finished loading sitedata"));
-*/
+const ENABLE_DEBUG_LISTENERS = false;
+
+if (ENABLE_DEBUG_LISTENERS) {
+    document.addEventListener("sitedata-load", (e) => {
+        console.log(e.origin, `loaded ${e.type} from '${e.source}'`);
+    });
+    document.addEventListener("sitedata-populate", (e) => {
+        console.log(`Populated ${e.attribute} with '${e.value}' from key ${e.key}`, e.element);
+    });
+    document.addEventListener("sitedata-finish", () => console.log("Finished loading sitedata"));
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
-    /* Load core site data */
-    await sitedata.loadData(SITEDATA_PATH);
-    document.dispatchEvent(new SiteDataLoadEvent("SITEDATA", SITEDATA_PATH, "data"));
+    const sitedata = new SiteData();
+
+    /* Load core site data first */
+    await sitedata.loadData(SITEDATA_PATH).then(() => {
+        document.dispatchEvent(new SiteDataLoadEvent("SITEDATA", SITEDATA_PATH, "data"));
+    });
 
     /* Load additional sources */
-
     // Get all <link> sources
     const linked = Array.from(document.querySelectorAll("link[data-include]"));
 
@@ -243,36 +294,40 @@ document.addEventListener("DOMContentLoaded", async () => {
         return 1;  // b comes first
     });
 
-    // Load linked data sources
+    // Load linked data sources second
     while (linked.length > 0 && linked[0].dataset.include === "data") {
         // Get next source to process
         const link = linked.shift();
 
-        await sitedata.loadData(link.href);
-        document.dispatchEvent(new SiteDataLoadEvent(link, link.href, "data"));
+        sitedata.loadData(link.href).then(() => {
+            document.dispatchEvent(new SiteDataLoadEvent(link, link.href, "data"));
+        }).catch(e => console.error(e));
     }
+    await sitedata.pendingPromises();
 
-    // Load URL query sources
+    // Load URL query sources third
     let urlSources = new URLSearchParams(window.location.search).get("ds");
     if (urlSources !== null) {
         urlSources = urlSources.split(' ');
 
         for (const source of urlSources) {
             let href = `/data/${source}.json`;
-            await sitedata.loadData(href);
-            document.dispatchEvent(new SiteDataLoadEvent("URL", href, "data"));
+            sitedata.loadData(href)
+                .then(() => document.dispatchEvent(new SiteDataLoadEvent("URL", href, "data")));
         }
     }
+    await sitedata.pendingPromises();
 
-    // Load linked content sources
+    // Load linked content sources fourth
     while (linked.length > 0) {
         // Get next source to process
         const link = linked.shift();
 
-        await sitedata.loadContent(link.href, link.title,
-            link.hasAttribute("type") ? link.type : "text/plain");
-        document.dispatchEvent(new SiteDataLoadEvent(link, link.href, "content"));
+        sitedata.loadContent(link.href, link.title,
+            link.hasAttribute("type") ? link.type : "text/plain")
+            .then(() => document.dispatchEvent(new SiteDataLoadEvent(link, link.href, "content")));
     }
+    await sitedata.pendingPromises();
 
     /* Populate data-driven targets */
     SiteData.populateDocument(document);

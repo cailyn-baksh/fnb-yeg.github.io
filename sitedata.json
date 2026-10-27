@@ -4,5 +4,6 @@
         "msg": "baz",
         "style": "color:red"
     },
-    "fragText": "Text loaded from data"
+    "fragText": "Text loaded from data",
+    "array": [ "first", "second", "third" ]
 }

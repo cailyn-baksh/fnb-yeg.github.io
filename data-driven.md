@@ -65,8 +65,8 @@ data. The attribute's value is a list of `attr=key` pairs, where `attr` is the
 name of an attribute of the HTML element, and key is a valid data or content key.
 
 Data keys are one or more names separated with a `.`. Each `.` queries the next
-name, treating the previous name as an object. Arrays are currently unsupported;
-this needs to be implemented.
+name, treating the previous name as an object. Arrays can be accessed by using
+the desired index as a name.
 
 Content keys are a single name prefixed with an `@`. The name is defined by the
 `<link>` title attribute.
@@ -91,6 +91,6 @@ name foo -->
 - [x] Dispatch document events as data is loaded and populated
   - [ ] Delay markdown rendering until data population is complete
 - [x] Allow included content to access data-driven values using page-specific data
-- [ ] Add syntax for indexing arrays from site data
+- [x] Add syntax for indexing arrays from site data
 - [ ] Add defined failure behaviour & error handling
 

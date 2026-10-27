@@ -88,7 +88,7 @@ name foo -->
   - [x] Data files
   - [x] Content files
 - [x] Load data files from URL query string
-- [ ] Dispatch document events as data is loaded and populated
+- [x] Dispatch document events as data is loaded and populated
   - [ ] Delay markdown rendering until data population is complete
 - [ ] Allow included content to access data-driven values using page-specific data
 - [ ] Add syntax for indexing arrays from site data

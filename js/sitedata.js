@@ -25,6 +25,8 @@ class SiteData {
     async loadData(src, opts={mode:"no-cors",credentials:"include"}) {
         let data = await fetch(src, opts).then(r => r.json());
         this.#data = Object.assign(this.#data, data);
+
+        // What to return? Promise? SiteDataLoadEvent?
     }
 
     /*
@@ -77,11 +79,98 @@ class SiteData {
     }
 }
 
+/*
+ * Triggered when site data is loaded
+ *
+ * origin       The thing that requested the data load. The core sitedata load
+ *              has the origin 'SITEDATA'. URL query loads have the origin
+ *              'URL'. HTML sources specify their node object.
+ * source       The path of the data source that was loaded
+ * type         The type of data loaded; either 'data' or 'content'
+ */
+class SiteDataLoadEvent extends Event {
+    #origin;
+    #source;
+    #type;
+
+    constructor(origin, source, type) {
+        super("sitedata-load");
+
+        this.#origin = origin;
+        this.#source = source;
+        this.#type = type;
+    }
+
+    get origin() {
+        return this.#origin;
+    }
+
+    get source() {
+        return this.#source;
+    }
+
+    get type() {
+        return this.#type;
+    }
+}
+
+/*
+ * Triggered when site data is populated
+ *
+ * element      The affected element
+ * attribute    The attribute that was populated
+ * key          The sitedata key that was queried
+ * value        The value that was populated
+ */
+class SiteDataPopulateEvent extends Event {
+    #element;
+    #attribute;
+    #key;
+    #value;
+
+    constructor(elem, attr, key, value) {
+        super("sitedata-populate");
+
+        this.#element = elem;
+        this.#attribute = attr;
+        this.#key = key;
+        this.#value = value;
+    }
+
+    get element() {
+        return this.#element;
+    }
+
+    get attribute() {
+        return this.#attribute;
+    }
+
+    get key() {
+        return this.#key;
+    }
+
+    get value() {
+        return this.#value;
+    }
+}
+
+
+const SITEDATA_PATH = "/sitedata.json";
 var sitedata = new SiteData();
+
+// Debug/testing listeners
+document.addEventListener("sitedata-load", (e) => {
+    console.log(e.origin, `loaded ${e.type} from '${e.source}'`);
+});
+document.addEventListener("sitedata-populate", (e) => {
+    console.log(`Populated ${e.attribute} with '${e.value}' from key ${e.key}`, e.element);
+});
+document.addEventListener("sitedata-finish", () => console.log("Finished loading sitedata"));
 
 document.addEventListener("DOMContentLoaded", async () => {
     /* Load core site data */
-    await sitedata.loadData("/sitedata.json");
+    await sitedata.loadData(SITEDATA_PATH);
+    document.dispatchEvent(new SiteDataLoadEvent("SITEDATA", SITEDATA_PATH, "data"));
 
     /* Load additional sources */
     // <link> sources
@@ -91,11 +180,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             case "data":
                 // Load JSON data
                 await sitedata.loadData(link.href);
+                document.dispatchEvent(new SiteDataLoadEvent(link, link.href, "data"));
                 break;
             case "content":
                 // Load arbitrary content
                 await sitedata.loadContent(link.href, link.title,
                     link.hasAttribute("type") ? link.type : "text/plain");
+                document.dispatchEvent(new SiteDataLoadEvent(link, link.href, "content"));
                 break;
         }
     }
@@ -106,7 +197,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         urlSources = urlSources.split(' ');
 
         for (const source of urlSources) {
-            await sitedata.loadData(`/data/${source}.json`);
+            let href = `/data/${source}.json`;
+            await sitedata.loadData(href);
+            document.dispatchEvent(new SiteDataLoadEvent("URL", href, "data"));
         }
     }
 
@@ -121,8 +214,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Query and apply each data target
         for (const target of targets) {
             let [attr, key] = target.split('=');
-            elem[attr] = sitedata.query(key);
+            let value = sitedata.query(key)
+            elem[attr] = value;
+
+            document.dispatchEvent(new SiteDataPopulateEvent(elem, attr, key, value));
         }
     }
+
+    document.dispatchEvent(new CustomEvent("sitedata-finish"));
 });
 

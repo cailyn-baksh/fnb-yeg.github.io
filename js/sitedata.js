@@ -152,7 +152,9 @@ class SiteData {
                 this.#content[title] = content;
                 break;
             default:
-                this.#content[title] = URL.createObjectURL(content);
+                // Non-text data; create data URI
+                let bytes = await content.bytes().then(b => b.toBase64());
+                this.#content[title] = `data:${mime};base64,${bytes}`;
         }
     }
 

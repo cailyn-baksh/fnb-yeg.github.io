@@ -3,5 +3,6 @@
     "obj": {
         "msg": "baz",
         "style": "color:red"
-    }
+    },
+    "fragText": "Text loaded from data"
 }

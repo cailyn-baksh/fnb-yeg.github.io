@@ -90,7 +90,7 @@ name foo -->
 - [x] Load data files from URL query string
 - [x] Dispatch document events as data is loaded and populated
   - [ ] Delay markdown rendering until data population is complete
-- [ ] Allow included content to access data-driven values using page-specific data
+- [x] Allow included content to access data-driven values using page-specific data
 - [ ] Add syntax for indexing arrays from site data
 - [ ] Add defined failure behaviour & error handling
 

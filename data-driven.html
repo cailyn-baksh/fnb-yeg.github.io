@@ -33,7 +33,8 @@
     <p data-driven="innerHTML=msg">foo</p>
     <p data-driven="innerHTML=obj.msg;style=obj.style">bar</p>
 
-    <div data-driven="innerHTML=@fragment"></div>
+    <div style="border: 1px solid black" data-driven="innerHTML=@fragment"></div>
+
     <img data-driven="src=@image" alt="Image loaded from data-driven content" />
 
     <p><a data-driven="href=override-url;innerText=override-msg"></a></p>

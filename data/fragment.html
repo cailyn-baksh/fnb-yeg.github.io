@@ -1,1 +1,7 @@
 <p>Some <i>arbitrary</i> <code>HTML</code> content</p>
+
+<p data-driven="innerText=fragText">Original text</p>
+
+<!-- Content queries from within other content is currently undefined
+    behaviour, with no specific plans to add support -->
+<img data-driven="src=@image" alt="Image loading failed" />

@@ -326,7 +326,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Load URL query sources third
     let urlSources = new URLSearchParams(window.location.search).get("ds");
     if (urlSources !== null) {
-        urlSources = urlSources.split(' ');
+        urlSources = urlSources.split(',');
 
         for (const source of urlSources) {
             let href = `/data/${source}.json`;

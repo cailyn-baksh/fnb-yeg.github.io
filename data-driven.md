@@ -52,6 +52,8 @@ be overridden on a per-page basis.
 
 Data sources can be loaded by including a `ds` key in the URL query string. For
 example, `/page?ds=source` would load the data file `/data/source.json`.
+Multiple sources are separated by commas (`,`), therefore source names may not
+include commas.
 
 URL data sources are loaded third, allowing data on the same page to be
 overridden depending on what URL query string is used to access the page.

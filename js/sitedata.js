@@ -217,13 +217,23 @@ class SiteData {
         // Could this be a static method?
         if (path[0] === '@') {
             // Get content
-            return this.#content[path.substr(1)];
+            let key = path.substr(1);
+
+            if (!(key in this.#content)) {
+                throw ReferenceError(`No such content entitled '${path}'`);
+            }
+
+            return this.#content[key];
         } else {
             // Get data
             let keys = path.split('.');
 
             let selected = this.#data;
             for (const key of keys) {
+                if (!(key in selected)) {
+                    throw ReferenceError(`No such data '${path}'`);
+                }
+
                 selected = selected[key];
             }
 
@@ -245,9 +255,17 @@ class SiteData {
             // Query and apply each data target
             for (const target of targets) {
                 let [attr, key] = target.split('=');
-                let value = SiteData.instance.query(key);
-                elem[attr] = value;
 
+                let value;
+                try {
+                    value = SiteData.instance.query(key);
+                } catch (err) {
+                    // Ignore invalid keys
+                    if (!(err instanceof ReferenceError)) throw err;
+                    continue;
+                }
+
+                elem[attr] = value;
                 doc.dispatchEvent(new SiteDataPopulateEvent(elem, attr, key, value));
             }
         }
@@ -313,7 +331,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         for (const source of urlSources) {
             let href = `/data/${source}.json`;
             sitedata.loadData(href)
-                .then(() => document.dispatchEvent(new SiteDataLoadEvent("URL", href, "data")));
+                .then(() => document.dispatchEvent(new SiteDataLoadEvent("URL", href, "data")))
+                .catch(e => console.error(e));
         }
     }
     await sitedata.pendingPromises();
@@ -325,7 +344,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         sitedata.loadContent(link.href, link.title,
             link.hasAttribute("type") ? link.type : "text/plain")
-            .then(() => document.dispatchEvent(new SiteDataLoadEvent(link, link.href, "content")));
+            .then(() => document.dispatchEvent(new SiteDataLoadEvent(link, link.href, "content")))
+            .catch(e => console.error(e));
     }
     await sitedata.pendingPromises();
 

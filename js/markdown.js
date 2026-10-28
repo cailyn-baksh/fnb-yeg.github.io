@@ -785,8 +785,9 @@ function parseMarkdown(tokens) {
 	return stack.join('');
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
-	// Render markdown after DOM finished parsing
+// Render after sitedata processing if SiteData is defined, else after DOM load
+const mdRenderEvent = (typeof SiteData !== "undefined") ? "sitedata-finish" : "DOMContentLoaded";
+document.addEventListener(mdRenderEvent, async () => {
 	let targetElems = document.querySelectorAll("pre.markdown");
 
 	for (const target of targetElems) {

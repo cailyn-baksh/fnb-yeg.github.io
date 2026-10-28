@@ -17,6 +17,22 @@
 	<script src="/js/markdown.min.js"></script>
 
 	<title>News — Food Not Bombs Edmonton</title>
+
+	<!-- Style for newsletter desc -->
+    <style>
+        #newsletterCollapseText {
+            background-color: #fff;
+        }
+
+        #newsletterCollapseText header {
+            border-radius: 3px;
+            padding: 10px;
+
+            color: #fff;
+            text-shadow: 1px 1px 5px #444;
+            background-image: linear-gradient(90deg, #01be65, #01be65 80%, #fff);
+        }
+	</style>
 </head>
 
 <body>
@@ -79,13 +95,165 @@
 		</nav>
 		<div class="container">
             <div class="row justify-content-center">
+                <!-- Social feeds -->
                 <div class="col-xs-12 col-lg-8">
                     <div class="card vh-100 overflow-scroll">
-                        <bsky-embed username="foodnotbombsyeg.bsky.social"
-                            load-more="true"></bsky-embed>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="bsky-tab"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#bsky-tab-pane"
+                                    type="button" role="tab"
+                                    aria-controls="bsky-tab-pane"
+                                    aria-selected="true">
+                                    <i class="ri-bluesky-fill"></i>Bluesky
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="insta-tab"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#insta-tab-pane"
+                                    type="button" role="tab"
+                                    aria-controls="insta-tab-pane"
+                                    aria-selected="true">
+                                    <i class="ri-instagram-line"></i>Instagram
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content h-100" id="socialTabs">
+                            <div class="tab-pane show active" id="bsky-tab-pane"
+                                role="tabpanel" aria-labelledby="bsky-tab" tabindex=0>
+                                <bsky-embed username="foodnotbombsyeg.bsky.social"
+                                    load-more="true"></bsky-embed>
+                            </div>
+                            <div class="tab-pane h-100" id="insta-tab-pane"
+                                role="tabpanel" aria-labelledby="insta-tab" tabindex=0>
+                                <iframe class="h-100 w-100" loading="lazy"
+                                    src="https://www.instagram.com/foodnotbombs_yeg/embed/" frameborder="0"></iframe>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
+
+            <!-- Newsletters & Announcements -->
+            <hr />
+            <div class="row justify-content-center">
+                <div class="col-xs-12 col-md-12 col-lg-6">
+					<div class="card">
+						<img class="card-img-top"
+                        src="/images/newsletter_spring2025.webp" alt="Food Not
+                        Bombs Newsletter for Spring 2025.">
+						<div class="card-body">
+							<p>
+								<a data-bs-toggle="collapse" href="#newsletterCollapseText" role="button" aria-expanded="false" aria-controls="newsletterCollapseText">[View Image Transcription]</a>
+							</p>
+							<div class="collapse" id="newsletterCollapseText">
+                                <header>
+                                    <h1>Food Not Bombs YEG Newsletter</h1>
+                                    <h2>For Spring 2025</h2>
+                                </header>
+                                <section>
+                                    <h2>Changing with the seasons</h2>
+                                    <p>
+                                    As the weather warms up, our opportunities
+                                    for expanding the organization are growing.
+                                    We are looking into reimagining and
+                                    restarting some old projects, including a
+                                    Community Pantry to replace the Community
+                                    Fridge program, and looking for a new site
+                                    to rekindle our Community Garden program.
+                                    We are making progress on both projects. We
+                                    have finally gotten into a routine where we
+                                    hold our Community Meals every month as
+                                    well.
+                                    </p>
+                                </section>
+
+                                <section>
+                                    <h2>Programs:</h2>
+                                    <ul>
+                                        <li>Community garden (in progress)</li>
+                                        <li>Community pantry (in progress)</li>
+                                        <li>Community meals</li>
+                                        <li>Helping the Humans</li>
+                                        <li>
+                                            Fruit Collection (on hiatus, will
+                                            resume in August)
+                                        </li>
+                                    </ul>
+                                </section>
+
+                                <section>
+                                    <h2>Service</h2>
+                                    <p>
+                                    FNB YEG has served many hundreds of
+                                    households through our Helping the Humans
+                                    meal delivery program. We are also seeing
+                                    an explosion in the number of Birthday Club
+                                    requests and we are consistently serving 40
+                                    people a month through the Community Meals
+                                    program at Mary Burlie Park.
+                                    </p>
+                                </section>
+
+                                <h4>
+                                    Contact us at
+                                    <a href="mailto:foodnotbombsedmonton@gmail.com">foodnotbombsedmonton@gmail.com</a>
+                                </h4>
+                                <h4>
+                                    Sign up to volunteer at
+                                    <a href="/how_to_join">edmonton.foodnotbombs.us</a>
+                                </h4>
+							</div>
+						</div>
+					</div>
+                </div>
+
+                <div class="col-xs-12 col-md-12 col-lg-6">
+                    <div class="card">
+                        <img class="card-img-top"
+                                    src="/images/2025-fruit-collection.webp"
+                                    alt="" />
+                        <div class="card-body">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">Fruit Collection 2025</h5>
+                            </div>
+                            <p class="mb-1">
+                                It's Fruit Collection season! Let us know if
+                                you have more fruit than you know what do with.
+                                We can come collect it from your trees and turn
+                                it into yummy food for food insecure people.
+                            </p>
+							<p>
+								<a data-bs-toggle="collapse"
+                                    href="#fruit2025Collapse" role="button"
+                                    aria-expanded="false"
+                                    aria-controls="fruit2025CollapseText">[View Image Transcription]</a>
+							</p>
+                            <div class="collapse" id="fruit2025Collapse">
+                                <h4>Fruit Collection 2025</h4>
+                                <h5>Food Not Bombs YEG</h5>
+
+                                <p>
+                                    Every year, FNB YEG collects fruit from
+                                    people's trees that they have no use for.
+                                    It is time for our yearly collection
+                                    season! We will divert your fruit that you
+                                    can't use to make food for homeless and low
+                                    income people.
+                                </p>
+                                <p>
+                                    Contact us at
+                                    <a href="mailto:foodnotbombsedmonton@mail.com">foodnotbombsedmonton@gmail.com</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+
 			<div class="row my-5">
 				<div class="text-end">
 					<a class="btn btn-light" href="/olds.html">Archived News<i class="ri-arrow-right-s-line"></i></a>

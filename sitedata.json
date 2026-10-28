@@ -5,5 +5,10 @@
         "style": "color:red"
     },
     "fragText": "Text loaded from data",
-    "array": [ "first", "second", "third" ]
+    "array": [ "first", "second", "third" ],
+
+    "forms": {
+        "hth": "https://form.jotform.com/262409347749064",
+        "join": "https://docs.google.com/forms/d/e/1FAIpQLSdIXrqHXjzSLkL72PVzfVlTHLzntS_dvVlvzHxspk0Q--pBYw/viewform?embedded=true"
+    }
 }

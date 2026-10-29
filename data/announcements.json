@@ -1,0 +1,21 @@
+{
+    "announcements": [
+        {
+            "images": [ "/images/2025-fruit-collection.webp" ],
+            "title": "Fruit Collection 2025",
+            "desc": "It's Fruit Collection season! Let us know if you have more fruit than you know what do with. We can come collect it from your trees and turn it into yummy food for food insecure people."
+        },
+        {
+            "images": [ ],
+            "title": "news 2",
+            "date": "2026-10-29",
+            "desc": "Electric newsaloo"
+        },
+        {
+            "images": [],
+            "title": "news 3",
+            "date": "2026-10-30",
+            "desc": "Even newsier!"
+        }
+    ]
+}

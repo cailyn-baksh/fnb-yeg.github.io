@@ -262,6 +262,7 @@ class SiteData {
                 } catch (err) {
                     // Ignore invalid keys
                     if (!(err instanceof ReferenceError)) throw err;
+                    console.error(`Invalid key ${key}`);
                     continue;
                 }
 

@@ -1,7 +1,7 @@
 {
     "announcements": [
         {
-            "images": [ "/images/2025-fruit-collection.webp" ],
+            "images": [ { "src": "/images/2025-fruit-collection.webp", "alt": "Food Not Bombs Newsletter for Spring 2025." } ],
             "title": "Fruit Collection 2025",
             "desc": "It's Fruit Collection season! Let us know if you have more fruit than you know what do with. We can come collect it from your trees and turn it into yummy food for food insecure people."
         },

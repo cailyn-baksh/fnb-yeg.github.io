@@ -82,16 +82,29 @@
 
                 // Add images
                 const imgContainer = card.querySelector(".imgContainer");
+
+                // Returns [src, alt]
+                const getImageData = (img) => {
+                    switch (typeof img) {
+                        case "string":
+                            return [img, ""];
+                        case "object":
+                            return [img.src, img.alt];
+                        default:
+                            return ["", ""]
+                    }
+                };
+
                 if (announcement.images.length === 1) {
                     const img = document.createElement("img");
-                    img.src = announcement.images[0];
+                    [img.src, img.alt] = getImageData(announcement.images[0]);
                     img.classList.add("card-img-top");
                     imgContainer.appendChild(img);
                 } else if (announcement.images.length > 1) {
                     let images = [];
                     for (const image of announcement.images) {
                         let elem = document.createElement("img");
-                        elem.src = image;
+                        [elem.src, elem.alt] = getImageData(image);
                         elem.classList.add("d-block", "w-100");
                         images.push(elem);
                     }

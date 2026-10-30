@@ -16,6 +16,7 @@
 
     <script src="/js/sitedata.js"></script>
 	<script src="/js/markdown.min.js"></script>
+    <script src="/js/utils.js"></script>
 
     <!-- Data sources -->
     <link data-include="content" rel="preload" as="fetch"
@@ -65,21 +66,37 @@
                 }
             });
 
-            const container = document.getElementById("announcements");
-
-            // TODO: Limit if too many news items are added
-
-
             // Create card for each announcement
-            const MAX_ANNOUNCEMENTS = 10;
-            for (let i=0; i < announcements.length && i < MAX_ANNOUNCEMENTS; ++i) {
+            const MAX_CARDS = 10;
+            const container = document.getElementById("announcements");
+            for (let i=0; i < announcements.length && i < MAX_CARDS; ++i) {
                 const announcement = announcements[i];
 
                 // Create card
-                container.innerHTML += sd.query("@newsCard");
+                const carouselID = `annoucementCarousel${i}`;
+                let cardHTML = sd.query("@newsCard")
+                    .replaceAll("carouselID", carouselID);
+
+                container.innerHTML += cardHTML;
                 const card = container.lastElementChild;
 
-                // TODO: add images
+                // Add images
+                const imgContainer = card.querySelector(".imgContainer");
+                if (announcement.images.length === 1) {
+                    const img = document.createElement("img");
+                    img.src = announcement.images[0];
+                    img.classList.add("card-img-top");
+                    imgContainer.appendChild(img);
+                } else if (announcement.images.length > 1) {
+                    let images = [];
+                    for (const image of announcement.images) {
+                        let elem = document.createElement("img");
+                        elem.src = image;
+                        elem.classList.add("d-block", "w-100");
+                        images.push(elem);
+                    }
+                    makeBSCarousel(imgContainer, images);
+                }
 
                 // Populate news data
                 card.querySelector(".announcement-title")
@@ -88,7 +105,7 @@
                     .innerHTML = announcement.desc;
 
                 // Populate date if a valid date is provided
-                let date = new Date(announcement.date);
+                let date = new Date(announcement.date + "T00:00-06:00");
                 if (!isNaN(date.valueOf())) {
                     card.querySelector(".announcement-date")
                         .innerText = date.toDateString();
@@ -97,8 +114,6 @@
 
             SiteData.populateDocument(container);
         });
-
-        // Construct HTML programatically or include source fragment?
     </script>
 </head>
 

@@ -6,7 +6,7 @@
             "desc": "It's Fruit Collection season! Let us know if you have more fruit than you know what do with. We can come collect it from your trees and turn it into yummy food for food insecure people."
         },
         {
-            "images": [ ],
+            "images": [ "/data/image.png", "/data/image2.png" ],
             "title": "news 2",
             "date": "2026-10-29",
             "desc": "Electric newsaloo"

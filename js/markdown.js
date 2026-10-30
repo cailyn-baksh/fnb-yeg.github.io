@@ -2,7 +2,7 @@
  * Version 2.0 of markdown.js
  *
  * Minified using uglify.js
- * uglifyjs --compress --mangle toplevel -- js/markdown.js > js/markdown.min.js
+ * uglifyjs --compress --mangle -- js/markdown.js > js/markdown.min.js
  */
 
 /*

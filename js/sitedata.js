@@ -48,7 +48,7 @@ class SiteDataPopulateEvent extends Event {
     #value;
 
     constructor(elem, attr, key, value) {
-        super("sitedata-populate");
+        super("sitedata-populate", { "bubbles": true });
 
         this.#element = elem;
         this.#attribute = attr;
@@ -267,7 +267,7 @@ class SiteData {
                 }
 
                 elem[attr] = value;
-                doc.dispatchEvent(new SiteDataPopulateEvent(elem, attr, key, value));
+                elem.dispatchEvent(new SiteDataPopulateEvent(elem, attr, key, value));
             }
         }
     }

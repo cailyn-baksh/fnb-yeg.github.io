@@ -66,3 +66,41 @@ function makeBSCarousel(container, items) {
         }
     }
 }
+
+document.addEventListener("sitedata-finish", () => {
+    /* Highlight current page on navbar */
+    const pageName = window.location.pathname.split('.', 1)[0];
+    let navLinkID = null;
+
+    switch (pageName) {
+        case "/":
+        case "/index":
+            navLinkID = "nav-home";
+            break;
+        case "/news":
+            navLinkID = "nav-news";
+            break;
+        case "/projects":
+            navLinkID = "nav-projects";
+            break;
+        case "/how_to_join":
+            navLinkID = "nav-join";
+            break;
+        case "/library":
+            navLinkID = "nav-library";
+            break;
+        case "/recipes":
+            navLinkID = "nav-recipes";
+            break;
+        case "/local_orgs":
+            navLinkID = "nav-local";
+            break;
+        case "/history":
+            navLinkID = "nav-history";
+            break;
+    }
+
+    if (navLinkID !== null) {
+        document.getElementById(navLinkID).classList.add("active");
+    }
+});

@@ -1,15 +1,21 @@
+function randomID(prefix="_") {
+    return `${prefix}${Math.random().toString(36).substr(2)}`;
+}
+
 /*
  * Makes a bootstrap carousel
+ * container    Element to append the carousel to
+ * items        A list of Nodes to add into the carousel
  */
 function makeBSCarousel(container, items) {
-    const carouselID = `carousel${Math.random().toString(36).substr(2)}`
+    const carouselID = randomID("carousel");
 
     /* Create skeleton first */
     // Create carousel container
     const carousel = document.createElement("div");
     carousel.id = carouselID;
     carousel.classList.add("carousel", "slide");
-    carousel.bsInterval = false;
+    carousel.dataset.bsInterval = false;
     container.appendChild(carousel);
 
     // Create indicator container

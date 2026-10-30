@@ -694,6 +694,7 @@ function parseMarkdown(tokens) {
 				stack.splice(firstTokenIndex, stack.length, "<hr />");
 			} else if (lineEnd !== -1 && token.length === 1 && i+1 !== tokens.length && blockStack.length === 0) {
 				// Single newline inside a paragraph; ignore
+                stack.push(' ');
 				stack.push('\u0003');
 				continue;
 			} else {
@@ -714,7 +715,7 @@ function parseMarkdown(tokens) {
 						rows.push(row.filter(token => !token.split('').every(c => " \t\u0003".includes(c))));
 					}
 
-					if (rows.length > 3 && rows[1].join('').split('').every(c => "|:-".includes(c))) {
+					if (rows.length >= 3 && rows[1].join('').split('').every(c => "|:-".includes(c))) {
 						// This is a table
 						let columnClasses = parseTableAlignment(rows[1]);
 
@@ -765,7 +766,6 @@ function parseMarkdown(tokens) {
 							continue;
 						}
 					}
-
 				}
 
 				stack.splice(firstTokenIndex, 0, "<p>");
@@ -785,9 +785,7 @@ function parseMarkdown(tokens) {
 	return stack.join('');
 }
 
-// Render after sitedata processing if SiteData is defined, else after DOM load
-const mdRenderEvent = (typeof SiteData !== "undefined") ? "sitedata-finish" : "DOMContentLoaded";
-document.addEventListener(mdRenderEvent, async () => {
+async function renderMarkdown(node=document) {
 	let targetElems = document.querySelectorAll("pre.markdown");
 
 	for (const target of targetElems) {
@@ -819,4 +817,9 @@ document.addEventListener(mdRenderEvent, async () => {
 
 		target.parentNode.replaceChild(card, target);
 	}
-});
+}
+
+// Render after sitedata processing if SiteData is defined, else after DOM load
+const mdRenderEvent = (typeof SiteData !== "undefined") ? "sitedata-finish" : "DOMContentLoaded";
+document.addEventListener(mdRenderEvent, async () => await renderMarkdown());
+

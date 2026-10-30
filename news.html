@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
-	<meta charset="utf-8">
+<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
 	<!-- Bootstrap -->
@@ -15,7 +15,7 @@
 	<link href="/stylesheet.css" rel="stylesheet" type="text/css"/>
 
     <script src="/js/sitedata.js"></script>
-	<script src="/js/markdown.min.js"></script>
+	<script src="/js/markdown.js"></script>
     <script src="/js/utils.js"></script>
 
     <!-- Data sources -->
@@ -95,27 +95,59 @@
                     }
                 };
 
-                if (announcement.images.length === 1) {
-                    const img = document.createElement("img");
-                    [img.src, img.alt] = getImageData(announcement.images[0]);
-                    img.classList.add("card-img-top");
-                    imgContainer.appendChild(img);
-                } else if (announcement.images.length > 1) {
-                    let images = [];
-                    for (const image of announcement.images) {
-                        let elem = document.createElement("img");
-                        [elem.src, elem.alt] = getImageData(image);
-                        elem.classList.add("d-block", "w-100");
-                        images.push(elem);
+                if ("images" in announcement) {
+                    if (announcement.images.length === 1) {
+                        // Add one image
+                        const img = document.createElement("img");
+                        [img.src, img.alt] = getImageData(announcement.images[0]);
+                        img.classList.add("card-img-top");
+                        imgContainer.appendChild(img);
+                    } else if (announcement.images.length > 1) {
+                        // Add multiple images in a carousel
+                        let images = [];
+                        for (const image of announcement.images) {
+                            let elem = document.createElement("img");
+                            [elem.src, elem.alt] = getImageData(image);
+                            elem.classList.add("d-block", "w-100");
+                            images.push(elem);
+                        }
+                        makeBSCarousel(imgContainer, images);
                     }
-                    makeBSCarousel(imgContainer, images);
                 }
 
                 // Populate news data
-                card.querySelector(".announcement-title")
-                    .innerText = announcement.title;
-                card.querySelector(".announcement-desc")
-                    .innerHTML = announcement.desc;
+                if ("title" in announcement) {
+                    card.querySelector(".announcement-title")
+                        .innerHTML = announcement.title;
+                }
+                if ("description" in announcement) {
+                    card.querySelector(".announcement-desc")
+                        .innerHTML = announcement.description;
+                }
+
+                // Add transcription if present
+                if ("transcription" in announcement) {
+                    let transID = randomID("transcription");
+
+                    // Generate collapse toggle
+                    let p = document.createElement("p");
+                    let elem = document.createElement("a");
+                    elem.dataset.bsToggle = "collapse";
+                    elem.href = `#${transID}`;
+                    elem.role = "button";
+                    elem.ariaExpanded = false;
+                    elem.ariaControls = transID;
+                    elem.innerText = "[View Image Transcription]";
+                    p.appendChild(elem);
+                    card.querySelector(".card-body").appendChild(p);
+
+                    // Generate transcription element
+                    let trans = document.createElement("div");
+                    trans.classList.add("collapse");
+                    trans.id = transID;
+                    trans.innerHTML = announcement.transcription;
+                    card.querySelector(".card-body").appendChild(trans);
+                }
 
                 // Populate date if a valid date is provided
                 let date = new Date(announcement.date + "T00:00-06:00");
@@ -126,6 +158,7 @@
             }
 
             SiteData.populateDocument(container);
+            renderMarkdown(container);
         });
     </script>
 </head>
@@ -295,6 +328,8 @@
                         </div>
                     </div>
             </div>
+
+            <hr />
 
             <!-- Data-driven -->
             <div class="row justify-content-center" id="announcements"></div>

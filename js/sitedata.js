@@ -74,45 +74,31 @@ class SiteDataPopulateEvent extends Event {
 }
 
 /*
- * Singleton class representing the site data
+ * Static class representing the site data
  */
 class SiteData {
-    /* Singleton init code */
-    // IDK how useful/effective a singleton is in js but the pattern would make
-    // sense here in like c++ so i'm using it
-    static #instance = null;
-    static {
-        this.#instance = new SiteData();
-    }
-    constructor() {
-        return SiteData.#instance ?? this;
-    }
-    static get instance() {
-        return this.#instance;
+    static #data = {};
+    static #content = {};
+
+    static #promises = [];
+
+    static get data() {
+        return Object.freeze(SiteData.#data);
     }
 
-    #data = {};
-    #content = {};
-
-    #promises = [];
-
-    get data() {
-        return Object.freeze(this.#data);
+    static get content() {
+        return Object.freeze(SiteData.#content);
     }
 
-    get content() {
-        return Object.freeze(this.#content);
-    }
-
-    toString() {
-        return JSON.stringify({ data: this.#data, content: this.#content});
+    static toString() {
+        return JSON.stringify({ data: SiteData.#data, content: SiteData.#content});
     }
 
     /*
      * Wrapper around fetch that rejects if the request fails. Enforces a
      * same-origin policy on all fetches.
      */
-    #fetch(src) {
+    static #fetch(src) {
         return fetch(src, { mode: "no-cors", credentials: "include" })
             .then(r => {
                 if (!r.ok)
@@ -124,9 +110,9 @@ class SiteData {
     /*
      * Returns once all pending promises are settled.
      */
-    async pendingPromises() {
-        await Promise.allSettled(this.#promises);
-        this.#promises = [];
+    static async pendingPromises() {
+        await Promise.allSettled(SiteData.#promises);
+        SiteData.#promises = [];
     }
 
     /*
@@ -135,14 +121,14 @@ class SiteData {
      * opts     Options to pass to fetch. Defaults to a same-origin request.
      * Returns a Promise that resolves to the loaded data
      */
-    loadData(src) {
-        let promise = this.#fetch(src)
+    static loadData(src) {
+        let promise = SiteData.#fetch(src)
             .then(r => r.json())
             .then(data => {
-                this.#data = Object.assign(this.#data, data);
+                SiteData.#data = Object.assign(SiteData.#data, data);
                 return data;
             });
-        this.#promises.push(promise);
+        SiteData.#promises.push(promise);
         return promise;
     }
 
@@ -190,18 +176,18 @@ class SiteData {
      * mime     The MIME type of the content. Defaults to text/plain
      * Returns a Promise that resolves to the loaded content
      */
-    loadContent(src, title, mime="text/plain") {
+    static loadContent(src, title, mime="text/plain") {
         // We only care about the discrete type
         let [type, subtype] = mime.split('/', 2);
 
-        let promise = this.#fetch(src)
+        let promise = SiteData.#fetch(src)
             .then(r => r.blob())
             .then(blob => SiteData.#processContentBlob(blob, mime))
             .then(content => {
-                this.#content[title] = content;
+                SiteData.#content[title] = content;
                 return content;
             });
-        this.#promises.push(promise);
+        SiteData.#promises.push(promise);
         return promise;
     }
 
@@ -213,22 +199,22 @@ class SiteData {
      * Paths may be one or more data keys, separated by '.', or a single
      * content key prefixed with an '@'.
      */
-    query(path) {
+    static query(path) {
         // Could this be a static method?
         if (path[0] === '@') {
             // Get content
             let key = path.substr(1);
 
-            if (!(key in this.#content)) {
+            if (!(key in SiteData.#content)) {
                 throw ReferenceError(`No such content entitled '${path}'`);
             }
 
-            return this.#content[key];
+            return SiteData.#content[key];
         } else {
             // Get data
             let keys = path.split('.');
 
-            let selected = this.#data;
+            let selected = SiteData.#data;
             for (const key of keys) {
                 if (!(key in selected)) {
                     throw ReferenceError(`No such data '${path}'`);
@@ -258,7 +244,7 @@ class SiteData {
 
                 let value;
                 try {
-                    value = SiteData.instance.query(key);
+                    value = SiteData.query(key);
                 } catch (err) {
                     // Ignore invalid keys
                     if (!(err instanceof ReferenceError)) throw err;
@@ -293,7 +279,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const sitedata = new SiteData();
 
     /* Load core site data first */
-    await sitedata.loadData(SITEDATA_PATH).then(() => {
+    await SiteData.loadData(SITEDATA_PATH).then(() => {
         document.dispatchEvent(new SiteDataLoadEvent("SITEDATA", SITEDATA_PATH, "data"));
     });
 
@@ -318,11 +304,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Get next source to process
         const link = linked.shift();
 
-        sitedata.loadData(link.href).then(() => {
+        SiteData.loadData(link.href).then(() => {
             document.dispatchEvent(new SiteDataLoadEvent(link, link.href, "data"));
         }).catch(e => console.error(e));
     }
-    await sitedata.pendingPromises();
+    await SiteData.pendingPromises();
 
     // Load URL query sources third
     let urlSources = new URLSearchParams(window.location.search).get("ds");
@@ -331,24 +317,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         for (const source of urlSources) {
             let href = `/data/${source}.json`;
-            sitedata.loadData(href)
+            SiteData.loadData(href)
                 .then(() => document.dispatchEvent(new SiteDataLoadEvent("URL", href, "data")))
                 .catch(e => console.error(e));
         }
     }
-    await sitedata.pendingPromises();
+    await SiteData.pendingPromises();
 
     // Load linked content sources fourth
     while (linked.length > 0) {
         // Get next source to process
         const link = linked.shift();
 
-        sitedata.loadContent(link.href, link.title,
+        SiteData.loadContent(link.href, link.title,
             link.hasAttribute("type") ? link.type : "text/plain")
             .then(() => document.dispatchEvent(new SiteDataLoadEvent(link, link.href, "content")))
             .catch(e => console.error(e));
     }
-    await sitedata.pendingPromises();
+    await SiteData.pendingPromises();
 
     /* Populate data-driven targets */
     SiteData.populateDocument(document);

@@ -11,8 +11,9 @@ Wet Ingredients:
 - Zest from 1 orange or 1 tsp vanilla extract
 
 1. Mix the wet and dry ingredients seperately, then combine
-2. Gently mix in 1&endash;2 cups frozen berries of choice
+2. Gently mix in 1&ndash;2 cups frozen berries of choice
 3. Spoon into muffin tins, or a 9 inch greased cake pan
-4. Bake at 350&degree;F for 35 minutes (muffins) or an hour (cake pan), or
-   until a butter knife can be cleanly inserted into the middle of the
-   muffin/cake.
+4. Bake at 350&deg;F for 35 minutes (muffins) or an hour (cake pan), or
+
+until a butter knife can be cleanly inserted into the middle of the
+muffin/cake.

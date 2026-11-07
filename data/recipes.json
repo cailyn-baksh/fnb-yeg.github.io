@@ -18,7 +18,7 @@
             "makes": "12 Muffins",
             "prep_time": "10 minutes",
             "cook_time": "35 minutes",
-            "file": "/recipes/orange-berry-muffins.md"
+            "file": "/recipes/orange_berry_muffins.md"
         },
         "test": {}
     }

@@ -2,6 +2,10 @@ function randomID(prefix="_") {
     return `${prefix}${Math.random().toString(36).substr(2)}`;
 }
 
+function titleCase(str) {
+    return str.replace(/\w\S*/g, s => s.charAt(0).toUpperCase() + s.substring(1).toLowerCase());
+}
+
 /*
  * Makes a bootstrap carousel
  * container    Element to append the carousel to

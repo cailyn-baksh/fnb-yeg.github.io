@@ -437,7 +437,7 @@ function parseInlineMarkdown(tokens) {
 /*
  * Parses markdown, returning HTML
  *
- * tokens	The tokens to parse
+ * tokens   The tokens to parse
  * Returns an HTML string
  */
 function parseMarkdown(tokens) {
@@ -449,7 +449,7 @@ function parseMarkdown(tokens) {
 	/*
 	 * Flush the blockstack into the stack before the given index
 	 *
-	 * index	The index to flush before
+	 * index    The index to flush before
 	 * Returns the number of tokens added to the stack
 	 */
 	let blockStack_flushBefore = (index) => {
@@ -694,8 +694,7 @@ function parseMarkdown(tokens) {
 				stack.splice(firstTokenIndex, stack.length, "<hr />");
 			} else if (lineEnd !== -1 && token.length === 1 && i+1 !== tokens.length && blockStack.length === 0) {
 				// Single newline inside a paragraph; ignore
-                stack.push(' ');
-				stack.push('\u0003');
+				stack.push(' ', '\u0003');
 				continue;
 			} else {
 				/* Paragraphs */
@@ -801,21 +800,21 @@ async function renderMarkdown(node=document) {
 			markdown = target.textContent;
 		}
 
-		let card = document.createElement("div");
+		/*let card = document.createElement("div");
 		card.classList += "card";
 
 		let cardBody = document.createElement("div");
 		cardBody.classList += "card-body";
-		card.appendChild(cardBody);
+		card.appendChild(cardBody);*/
 
 		let newElem = document.createElement("div");
 		newElem.classList += "markdown";
-		cardBody.appendChild(newElem);
+		//cardBody.appendChild(newElem);
 
 		let tokens = tokenizeMarkdown(markdown);
 		newElem.innerHTML = parseMarkdown(tokens);
 
-		target.parentNode.replaceChild(card, target);
+		target.parentNode.replaceChild(newElem, target);
 	}
 }
 

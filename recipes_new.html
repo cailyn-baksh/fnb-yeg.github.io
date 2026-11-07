@@ -12,7 +12,7 @@
 	<link href="/stylesheet.css" rel="stylesheet" type="text/css"/>
 
     <script src="/js/sitedata.js"></script>
-	<script src="/js/markdown.min.js"></script>
+	<script src="/js/markdown.js"></script>
     <script src="/js/utils.js"></script>
 
     <!-- Data sources -->
@@ -107,17 +107,44 @@
                 // Load selected recipe
                 const recipe = SiteData.query("recipes")[queried];
 
+                // Update title
+                recipeContent.querySelector("h2").innerText = queried;
+
                 // Apply recipe data
-                const recipeData = document.importNode(recipeDataTemplate.content, true);
+                const container = document.createElement("div");
+                container.classList.add("row");
                 const recipeMakes = recipeData.querySelector(".makes");
                 const recipePrep = recipeData.querySelector(".prep_time");
                 const recipeCook = recipeData.querySelector(".cook_time");
 
-                // TODO: populate fields
+                // Get list of each recipe data that needs to be displayed
+                let recipeDataKeys = [];
+                if ("makes" in recipe) recipeDataKeys.push("makes");
+                if ("prep_time" in recipe) recipeDataKeys.push("prep_time");
+                if ("cook_time" in recipe) recipeDataKeys.push("cook_time");
 
-                recipeContent.appendChild(recipeData);
+                // Add each data value to the row
+                for (const key of recipeDataKeys) {
+                    const recipeData = document.importNode(recipeDataTemplate.content, true);
+                    const label = recipeData.querySelector("b");
+                    const value = recipeData.querySelector("span");
+
+                    // Generate a label from the key name
+                    label.innerText = `${titleCase(key.replace('_', ' '))}:`;
+                    value.innerText = recipe[key];
+
+                    container.appendChild(recipeData);
+                }
+
+                recipeContent.appendChild(container);
 
                 // TODO: insert source file
+                const recipeBody = document.createElement("pre");
+                recipeBody.classList.add("markdown");
+                recipeBody.dataset.src = recipe.file;
+                recipeContent.appendChild(recipeBody);
+
+                renderMarkdown(recipeBody);
             }
         });
     </script>
@@ -148,16 +175,9 @@
                         </li>
                     </template>
                     <template id="recipeData">
-						<div class="row">
-							<div class="col-sm-12 col-md-4">
-								<p class="lead"><b>Makes:</b> <span class="makes"></span>
-							</div>
-							<div class="col-sm-12 col-md-4">
-								<p class="lead"><b>Prep Time:</b><span class="prep_time"></span>
-							</div>
-							<div class="col-sm-12 col-md-4">
-								<p class="lead"><b>Cook Time:</b> <span class="cook_time"></span>
-							</div>
+                        <div class="col-sm-12 col-md-4">
+                            <p class="lead"><b></b> <span></span>
+                        </div>
                     </template>
                 </div>
             </div>

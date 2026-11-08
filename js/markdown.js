@@ -2,7 +2,7 @@
  * Version 2.0 of markdown.js
  *
  * Minified using uglify.js
- * uglifyjs --compress --mangle toplevel -- js/markdown.js > js/markdown.min.js
+ * uglifyjs --compress --mangle -- js/markdown.js > js/markdown.min.js
  */
 
 /*
@@ -437,7 +437,7 @@ function parseInlineMarkdown(tokens) {
 /*
  * Parses markdown, returning HTML
  *
- * tokens	The tokens to parse
+ * tokens   The tokens to parse
  * Returns an HTML string
  */
 function parseMarkdown(tokens) {
@@ -449,14 +449,14 @@ function parseMarkdown(tokens) {
 	/*
 	 * Flush the blockstack into the stack before the given index
 	 *
-	 * index	The index to flush before
+	 * index    The index to flush before
 	 * Returns the number of tokens added to the stack
 	 */
 	let blockStack_flushBefore = (index) => {
 		let tokensAdded = 0;
 
 		while (blockStack.length > 0) {
-			stack.splice(index, 0, `</${blockStack.pop()}>`);
+			stack.splice(index, 0, `</${blockStack.pop()}>\n`);
 			++tokensAdded;
 		}
 
@@ -527,10 +527,8 @@ function parseMarkdown(tokens) {
 	for (let i=0; i < tokens.length; ++i) {
 		let token = tokens[i];
 
-		if (token.startsWith('\n')) {
+		if (token.startsWith('\n') && stack.length > 0) {
 			// Handle block elements
-
-			if (stack.length === 0) continue;  // Ignore this token
 
 			let lineEnd = rfind_lf();  // Find index of last line ending
 			let indent = 0;
@@ -692,9 +690,9 @@ function parseMarkdown(tokens) {
 				/* Horizontal line */
 				firstTokenIndex += blockStack_flushBefore(firstTokenIndex);
 				stack.splice(firstTokenIndex, stack.length, "<hr />");
-			} else if (lineEnd !== -1 && token.length === 1 && i+1 !== tokens.length && blockStack.length === 0) {
+			} else if (lineEnd !== -1 && token.length === 1 && i+1 !== tokens.length) {
 				// Single newline inside a paragraph; ignore
-				stack.push('\u0003');
+				stack.push(' ', '\u0003');
 				continue;
 			} else {
 				/* Paragraphs */
@@ -714,7 +712,7 @@ function parseMarkdown(tokens) {
 						rows.push(row.filter(token => !token.split('').every(c => " \t\u0003".includes(c))));
 					}
 
-					if (rows.length > 3 && rows[1].join('').split('').every(c => "|:-".includes(c))) {
+					if (rows.length >= 3 && rows[1].join('').split('').every(c => "|:-".includes(c))) {
 						// This is a table
 						let columnClasses = parseTableAlignment(rows[1]);
 
@@ -754,22 +752,20 @@ function parseMarkdown(tokens) {
 							}
 
 							// End of table
-							stack.push("</tbody></table>");
+							stack.push("</tbody></table>\n");
 
 							// Apply inline styles
 							let inline = parseInlineMarkdown(stack.slice(firstTokenIndex));
 							stack.splice(firstTokenIndex, stack.length, ...inline);
 							reduce_stack(firstTokenIndex);
 
-							stack.push('\n');
 							continue;
 						}
 					}
-
 				}
 
 				stack.splice(firstTokenIndex, 0, "<p>");
-				stack.push("</p>");
+                blockStack.push("p");
 
 				let inline = parseInlineMarkdown(stack.slice(firstTokenIndex));
 				stack.splice(firstTokenIndex, stack.length, ...inline);
@@ -778,15 +774,14 @@ function parseMarkdown(tokens) {
 
 			stack.push('\n');
 		} else {
-			stack.push(token);
+    		stack.push(token);
 		}
 	}
 
 	return stack.join('');
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
-	// Render markdown after DOM finished parsing
+async function renderMarkdown(node=document) {
 	let targetElems = document.querySelectorAll("pre.markdown");
 
 	for (const target of targetElems) {
@@ -802,20 +797,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 			markdown = target.textContent;
 		}
 
-		let card = document.createElement("div");
-		card.classList += "card";
-
-		let cardBody = document.createElement("div");
-		cardBody.classList += "card-body";
-		card.appendChild(cardBody);
-
 		let newElem = document.createElement("div");
 		newElem.classList += "markdown";
-		cardBody.appendChild(newElem);
 
 		let tokens = tokenizeMarkdown(markdown);
+        tokens.splice(0, 0, "\n");  // TEMP FIX FOR MULTILINE PARAGRAPH BUG
 		newElem.innerHTML = parseMarkdown(tokens);
 
-		target.parentNode.replaceChild(card, target);
+		target.parentNode.replaceChild(newElem, target);
 	}
-});
+}
+
+// Render after sitedata processing if SiteData is defined, else after DOM load
+const mdRenderEvent = (typeof SiteData !== "undefined") ? "sitedata-finish" : "DOMContentLoaded";
+document.addEventListener(mdRenderEvent, async () => await renderMarkdown());
+

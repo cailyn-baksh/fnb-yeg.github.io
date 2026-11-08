@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
-	<meta charset="utf-8">
+<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
 	<!-- Bootstrap -->
@@ -14,7 +14,20 @@
 
 	<link href="/stylesheet.css" rel="stylesheet" type="text/css"/>
 
+    <script src="/js/sitedata.js"></script>
 	<script src="/js/markdown.min.js"></script>
+    <script src="/js/utils.js"></script>
+
+    <!-- Data sources -->
+    <link data-include="content" rel="preload" as="fetch"
+        title="navbar" type="text/html" href="/fragments/navbar.html" />
+    <link data-include="content" rel="preload" as="fetch"
+        title="footer" type="text/html" href="/fragments/footer.html" />
+
+    <link data-include="data" rel="preload" as="fetch"
+        href="/data/announcements.json" />
+    <link data-include="content" rel="preload" as="fetch"
+        title="newsCard" type="text/html" href="/fragments/announcement.html" />
 
 	<title>News — Food Not Bombs Edmonton</title>
 
@@ -33,66 +46,126 @@
             background-image: linear-gradient(90deg, #01be65, #01be65 80%, #fff);
         }
 	</style>
+
+    <!-- Newsletter loading -->
+    <script>
+        document.addEventListener("sitedata-finish", () => {
+            const sd = new SiteData();
+
+            // Get list of news items, ordered by date
+            let announcements = SiteData.query("announcements");
+            announcements.sort((a,b) => {
+                if (!("date" in a)) return 1;  // No date; move to back
+
+                if (a.date > b.date) {
+                    return -1;  // a is more recent
+                } else if (a.date < b.date) {
+                    return 1;  // b is more recent
+                } else {
+                    return 0;
+                }
+            });
+
+            // Create card for each announcement
+            const MAX_CARDS = 10;
+            const container = document.getElementById("announcements");
+            for (let i=0; i < announcements.length && i < MAX_CARDS; ++i) {
+                const announcement = announcements[i];
+
+                // Create card
+                const carouselID = `annoucementCarousel${i}`;
+                let cardHTML = SiteData.query("@newsCard")
+                    .replaceAll("carouselID", carouselID);
+
+                container.innerHTML += cardHTML;
+                const card = container.lastElementChild;
+
+                // Add images
+                const imgContainer = card.querySelector(".imgContainer");
+
+                // Returns [src, alt]
+                const getImageData = (img) => {
+                    switch (typeof img) {
+                        case "string":
+                            return [img, ""];
+                        case "object":
+                            return [img.src, img.alt];
+                        default:
+                            return ["", ""];
+                    }
+                };
+
+                if ("images" in announcement) {
+                    if (announcement.images.length === 1) {
+                        // Add one image
+                        const img = document.createElement("img");
+                        [img.src, img.alt] = getImageData(announcement.images[0]);
+                        img.classList.add("card-img-top");
+                        imgContainer.appendChild(img);
+                    } else if (announcement.images.length > 1) {
+                        // Add multiple images in a carousel
+                        let images = [];
+                        for (const image of announcement.images) {
+                            let elem = document.createElement("img");
+                            [elem.src, elem.alt] = getImageData(image);
+                            elem.classList.add("d-block", "w-100");
+                            images.push(elem);
+                        }
+                        makeBSCarousel(imgContainer, images);
+                    }
+                }
+
+                // Populate news data
+                if ("title" in announcement) {
+                    card.querySelector(".announcement-title")
+                        .innerHTML = announcement.title;
+                }
+                if ("description" in announcement) {
+                    card.querySelector(".announcement-desc")
+                        .innerHTML = announcement.description;
+                }
+
+                // Add transcription if present
+                if ("transcription" in announcement) {
+                    let transID = randomID("transcription");
+
+                    // Generate collapse toggle
+                    let p = document.createElement("p");
+                    let elem = document.createElement("a");
+                    elem.dataset.bsToggle = "collapse";
+                    elem.href = `#${transID}`;
+                    elem.role = "button";
+                    elem.ariaExpanded = false;
+                    elem.ariaControls = transID;
+                    elem.innerText = "[View Image Transcription]";
+                    p.appendChild(elem);
+                    card.querySelector(".card-body").appendChild(p);
+
+                    // Generate transcription element
+                    let trans = document.createElement("div");
+                    trans.classList.add("collapse");
+                    trans.id = transID;
+                    trans.innerHTML = announcement.transcription;
+                    card.querySelector(".card-body").appendChild(trans);
+                }
+
+                // Populate date if a valid date is provided
+                let date = new Date(announcement.date + "T00:00-06:00");
+                if (!isNaN(date.valueOf())) {
+                    card.querySelector(".announcement-date")
+                        .innerText = date.toDateString();
+                }
+            }
+
+            SiteData.populateDocument(container);
+            renderMarkdown(container);
+        });
+    </script>
 </head>
 
 <body>
 	<div class="content gradient">
-		<nav class="navbar navbar-expand-lg navbar-dark bg-dark" aria-label="navbar">
-			<div class="container-fluid">
-				<a class="navbar-brand" href="/">
-					<img src="/images/FNB_logo_color_large.webp" style="padding-bottom:10px; width:45px; height:60px">
-				</a>
-				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#fnbnavbar" aria-controls="fnbnavbar" aria-expanded="false" aria-label="Toggle navigation">
-					<span class="navbar-toggler-icon"></span>
-				</button>
-				<div class="collapse navbar-collapse" id="fnbnavbar">
-					<ul class="navbar-nav me-auto mb-2 mb-md-0">
-						<li class="nav-item">
-							<a class="nav-link" href="/">Home</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link active" aria-current-"page" href="/news">News</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="/projects">Projects</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="/how_to_join">How to Join</a>
-						</li>
-						<li class="nav-item dropdown">
-							<a class="nav-link dropdown-toggle" href="#" id="navRequests" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-							Request Food
-							</a>
-							<ul class="dropdown-menu" aria-labelledby="navCalendar">
-								<li><a class="dropdown-item" target="_blank" href="/hth.html">Request a Meal</a></li>
-
-							</ul>
-						</li>
-						<li class="nav-item dropdown">
-							<a class="nav-link dropdown-toggle" href="#" id="navCalendar" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-							Calendar
-							</a>
-							<ul class="dropdown-menu" aria-labelledby="navCalendar">
-								<li><a class="dropdown-item" target="_blank" href="https://calendar.google.com/calendar/embed?src=foodnotbombsyeg%40gmail.com&ctz=America%2FEdmonton">Open Calendar</a></li>
-								<li><a class="dropdown-item" href="/request_calendar_access">Request Access</a></li>
-							</ul>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="/library">Library</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="/recipes">Recipes</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="/local_orgs">Local</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="/history">History</a>
-						</li>
-					</ul>
-				</div>
-			</div>
-		</nav>
+        <nav data-driven="innerHTML=@navbar"></nav>
 		<div class="container">
             <div class="row justify-content-center">
                 <!-- Social feeds -->
@@ -140,119 +213,9 @@
 
             <!-- Newsletters & Announcements -->
             <hr />
-            <div class="row justify-content-center">
-                <div class="col-xs-12 col-md-12 col-lg-6">
-					<div class="card">
-						<img class="card-img-top"
-                        src="/images/newsletter_spring2025.webp" alt="Food Not
-                        Bombs Newsletter for Spring 2025.">
-						<div class="card-body">
-							<p>
-								<a data-bs-toggle="collapse" href="#newsletterCollapseText" role="button" aria-expanded="false" aria-controls="newsletterCollapseText">[View Image Transcription]</a>
-							</p>
-							<div class="collapse" id="newsletterCollapseText">
-                                <header>
-                                    <h1>Food Not Bombs YEG Newsletter</h1>
-                                    <h2>For Spring 2025</h2>
-                                </header>
-                                <section>
-                                    <h2>Changing with the seasons</h2>
-                                    <p>
-                                    As the weather warms up, our opportunities
-                                    for expanding the organization are growing.
-                                    We are looking into reimagining and
-                                    restarting some old projects, including a
-                                    Community Pantry to replace the Community
-                                    Fridge program, and looking for a new site
-                                    to rekindle our Community Garden program.
-                                    We are making progress on both projects. We
-                                    have finally gotten into a routine where we
-                                    hold our Community Meals every month as
-                                    well.
-                                    </p>
-                                </section>
 
-                                <section>
-                                    <h2>Programs:</h2>
-                                    <ul>
-                                        <li>Community garden (in progress)</li>
-                                        <li>Community pantry (in progress)</li>
-                                        <li>Community meals</li>
-                                        <li>Helping the Humans</li>
-                                        <li>
-                                            Fruit Collection (on hiatus, will
-                                            resume in August)
-                                        </li>
-                                    </ul>
-                                </section>
-
-                                <section>
-                                    <h2>Service</h2>
-                                    <p>
-                                    FNB YEG has served many hundreds of
-                                    households through our Helping the Humans
-                                    meal delivery program. We are also seeing
-                                    an explosion in the number of Birthday Club
-                                    requests and we are consistently serving 40
-                                    people a month through the Community Meals
-                                    program at Mary Burlie Park.
-                                    </p>
-                                </section>
-
-                                <h4>
-                                    Contact us at
-                                    <a href="mailto:foodnotbombsedmonton@gmail.com">foodnotbombsedmonton@gmail.com</a>
-                                </h4>
-                                <h4>
-                                    Sign up to volunteer at
-                                    <a href="/how_to_join">edmonton.foodnotbombs.us</a>
-                                </h4>
-							</div>
-						</div>
-					</div>
-                </div>
-
-                <div class="col-xs-12 col-md-12 col-lg-6">
-                    <div class="card">
-                        <img class="card-img-top"
-                                    src="/images/2025-fruit-collection.webp"
-                                    alt="" />
-                        <div class="card-body">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h5 class="mb-1">Fruit Collection 2025</h5>
-                            </div>
-                            <p class="mb-1">
-                                It's Fruit Collection season! Let us know if
-                                you have more fruit than you know what do with.
-                                We can come collect it from your trees and turn
-                                it into yummy food for food insecure people.
-                            </p>
-							<p>
-								<a data-bs-toggle="collapse"
-                                    href="#fruit2025Collapse" role="button"
-                                    aria-expanded="false"
-                                    aria-controls="fruit2025CollapseText">[View Image Transcription]</a>
-							</p>
-                            <div class="collapse" id="fruit2025Collapse">
-                                <h4>Fruit Collection 2025</h4>
-                                <h5>Food Not Bombs YEG</h5>
-
-                                <p>
-                                    Every year, FNB YEG collects fruit from
-                                    people's trees that they have no use for.
-                                    It is time for our yearly collection
-                                    season! We will divert your fruit that you
-                                    can't use to make food for homeless and low
-                                    income people.
-                                </p>
-                                <p>
-                                    Contact us at
-                                    <a href="mailto:foodnotbombsedmonton@mail.com">foodnotbombsedmonton@gmail.com</a>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-            </div>
+            <!-- Data-driven -->
+            <div class="row justify-content-center" id="announcements"></div>
 
 			<div class="row my-5">
 				<div class="text-end">
@@ -261,20 +224,6 @@
 			</div>
 		</div>
 	</div>
-	<footer class="navbar-fixed-bottom bd-footer p-3 mt-5 bg-light text-center text-sm-start">
-		<small>
-			<ul class="bd-footer-links ps-0 mb-3">
-				<li class="d-inline-block"><i class="ri-facebook-fill"></i><a href="https://www.facebook.com/fnbyeg">Facebook</a></li>
-				<li class="d-inline-block ms-3"><i class="ri-bluesky-fill"></i><a rel="me" href="https://bsky.app/profile/foodnotbombsyeg.bsky.social">Bluesky</a></li>
-				<li class="d-inline-block ms-3"><i class="ri-instagram-line"></i><a href="https://instagram.com/foodnotbombs_yeg?igshid=wnwyiy58vzik">Instagram</a></li>
-				<li class="d-inline-block ms-3"><i class="ri-money-dollar-box-line"></i><a href = "https://gofund.me/97356399">GoFundMe</a></li> 
-				<li class="d-inline-block ms-3"><i class="ri-mail-line"></i><a href = "mailto: foodnotbombsedmonton@gmail.com">Email</a></li>
-				<li class="d-inline-block ms-3"><i class="ri-mastodon-fill"></i><a rel="me" href="https://kolektiva.social/@foodnotbombsyeg">Mastodon</a></li>
-			</ul>
-			<p class="mb-0">This website is developed and maintained by people living in amiskwaciwâskahikan. You can read our full land acknowledgement <a href="/land-acknowledgement">here.</a></p>
-			<p class="mb-0">The code for this website is hosted on <a href="https://github.com/fnb-yeg/fnb-yeg.github.io">github</a> and is licensed under <a href="https://creativecommons.org/publicdomain/zero/1.0/">Creative Commons Zero v1.0 Universal</a>.</p>
-			<p class="mb-0">If you'd like us to delegate DNS for YourGroup.foodnotbombs.us to you, <a href="http://omaha.foodnotbombs.us/">contact Jay Hannah of FNB Omaha.</a> Currently YourGroup is being redirected to the global homepage.</p>
-		</small>
-	</footer>
+    <footer data-driven="innerHTML=@footer"></footer>
 </body>
 </html>

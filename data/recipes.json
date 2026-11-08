@@ -1,0 +1,25 @@
+{
+    "recipe_groups": {
+        "fnbyeg": {
+            "lead": "Yummy vegan recipes, taste-tested by local Food Not Bombs members."
+        },
+        "hungryforpeace": {
+            "lead": "Food Not Bombs recipes as found in Hungry For Peace by Keith McHenry. Serve a crowd or just your friends!",
+            "subgroups": {
+                "breakfast": "Breakfast",
+                "lunch": "Lunch and Dinner",
+                "salads": "Salads"
+            }
+        }
+    },
+    "recipes": {
+        "Orange Berry Muffins": {
+            "group": "fnbyeg",
+            "makes": "12 Muffins",
+            "prep_time": "10 minutes",
+            "cook_time": "35 minutes",
+            "file": "/recipes/orange_berry_muffins.md"
+        },
+        "test": {}
+    }
+}

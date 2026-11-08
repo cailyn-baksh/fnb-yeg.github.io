@@ -456,7 +456,7 @@ function parseMarkdown(tokens) {
 		let tokensAdded = 0;
 
 		while (blockStack.length > 0) {
-			stack.splice(index, 0, `</${blockStack.pop()}>`);
+			stack.splice(index, 0, `</${blockStack.pop()}>\n`);
 			++tokensAdded;
 		}
 
@@ -527,10 +527,8 @@ function parseMarkdown(tokens) {
 	for (let i=0; i < tokens.length; ++i) {
 		let token = tokens[i];
 
-		if (token.startsWith('\n')) {
+		if (token.startsWith('\n') && stack.length > 0) {
 			// Handle block elements
-
-			if (stack.length === 0) continue;  // Ignore this token
 
 			let lineEnd = rfind_lf();  // Find index of last line ending
 			let indent = 0;
@@ -692,7 +690,7 @@ function parseMarkdown(tokens) {
 				/* Horizontal line */
 				firstTokenIndex += blockStack_flushBefore(firstTokenIndex);
 				stack.splice(firstTokenIndex, stack.length, "<hr />");
-			} else if (lineEnd !== -1 && token.length === 1 && i+1 !== tokens.length && blockStack.length === 0) {
+			} else if (lineEnd !== -1 && token.length === 1 && i+1 !== tokens.length) {
 				// Single newline inside a paragraph; ignore
 				stack.push(' ', '\u0003');
 				continue;
@@ -754,21 +752,20 @@ function parseMarkdown(tokens) {
 							}
 
 							// End of table
-							stack.push("</tbody></table>");
+							stack.push("</tbody></table>\n");
 
 							// Apply inline styles
 							let inline = parseInlineMarkdown(stack.slice(firstTokenIndex));
 							stack.splice(firstTokenIndex, stack.length, ...inline);
 							reduce_stack(firstTokenIndex);
 
-							stack.push('\n');
 							continue;
 						}
 					}
 				}
 
 				stack.splice(firstTokenIndex, 0, "<p>");
-				stack.push("</p>");
+                blockStack.push("p");
 
 				let inline = parseInlineMarkdown(stack.slice(firstTokenIndex));
 				stack.splice(firstTokenIndex, stack.length, ...inline);
@@ -777,7 +774,7 @@ function parseMarkdown(tokens) {
 
 			stack.push('\n');
 		} else {
-			stack.push(token);
+    		stack.push(token);
 		}
 	}
 
@@ -800,18 +797,11 @@ async function renderMarkdown(node=document) {
 			markdown = target.textContent;
 		}
 
-		/*let card = document.createElement("div");
-		card.classList += "card";
-
-		let cardBody = document.createElement("div");
-		cardBody.classList += "card-body";
-		card.appendChild(cardBody);*/
-
 		let newElem = document.createElement("div");
 		newElem.classList += "markdown";
-		//cardBody.appendChild(newElem);
 
 		let tokens = tokenizeMarkdown(markdown);
+        tokens.splice(0, 0, "\n");  // TEMP FIX FOR MULTILINE PARAGRAPH BUG
 		newElem.innerHTML = parseMarkdown(tokens);
 
 		target.parentNode.replaceChild(newElem, target);
